@@ -1,0 +1,10 @@
+Playing game: Player 1 VS Player 2
+Game 1: Player 2 wins by taking black: Red loses the game. Black wins!
+Game 2: Draw: Both sides have not eaten in sixty rounds, draw!
+Game 3: Player 1 wins by taking red: Black loses the game. Red wins!
+Game 4: Draw: Both sides have not eaten in sixty rounds, draw!
+Game 5: Player 2 wins by taking red: Black loses the game. Red wins!
+Game 6: Player 1 wins by taking black: Red loses the game. Black wins!
+Game 7: Player 1 wins by taking red: Black loses the game. Red wins!
+Player 1 : Player 2 is 3 : 2
+Finally Player 1 wins and Player 2 loses!

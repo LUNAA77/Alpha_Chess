@@ -1,0 +1,9 @@
+Playing game: Player 2 VS Player 3
+Game 1: Player 3 wins by taking black: Red loses the game. Black wins!
+Game 2: Player 2 wins by taking red: Black loses the game. Red wins!
+Game 3: Player 2 wins by taking red: Black loses the game. Red wins!
+Game 4: Player 3 wins by taking red: Black loses the game. Red wins!
+Game 5: Player 2 wins by taking black: Red loses the game. Black wins!
+Game 6: Player 2 wins by taking black: Red loses the game. Black wins!
+Player 2 : Player 3 is 4 : 2
+Finally Player 2 wins and Player 3 loses!
