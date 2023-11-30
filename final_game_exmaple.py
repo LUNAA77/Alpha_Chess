@@ -14,14 +14,15 @@ from player_2 import player_2
 
 Players = (player_1.player,
            player_2.player,)
-        #    player_3.player,
-        #    player_4.player,
-        #    player_5.player,
-        #    player_6.player,
-        #    player_7.player,
-        #    player_8.player,
-        #    player_9.player,
-        #    player_10.player)
+#    player_3.player,
+#    player_4.player,
+#    player_5.player,
+#    player_6.player,
+#    player_7.player,
+#    player_8.player,
+#    player_9.player,
+#    player_10.player)
+
 
 def run_one_game(agent_i, agent_j, player_i, player_j, game):
 
@@ -34,7 +35,7 @@ def run_one_game(agent_i, agent_j, player_i, player_j, game):
         red, black = agent_i, agent_j
     elif agent_i.side == "black":
         red, black = agent_j, agent_i
-    
+
     try:
         winner, text, history = play_headless_game(red, black, True)
 
@@ -42,7 +43,7 @@ def run_one_game(agent_i, agent_j, player_i, player_j, game):
             win_i += 1
             print(f"Game {k}: Player {i} wins by taking {agent_i.side}: ", text)
 
-        elif winner == agent_j.side: 
+        elif winner == agent_j.side:
             win_j += 1
             print(f"Game {k}: Player {j} wins by taking {agent_j.side}: ", text)
 
@@ -57,9 +58,11 @@ def run_one_game(agent_i, agent_j, player_i, player_j, game):
                 print(f"Game {k}: Draw: ", text)
 
     except Exception as e:
-        print(f"Exception occurred during Player {i} VS Player {j} in Game {k} : {e}")
+        print(
+            f"Exception occurred during Player {i} VS Player {j} in Game {k} : {e}")
 
     return win_i, win_j
+
 
 def fight(player_i: int, player_j: int):
     """
@@ -89,7 +92,8 @@ def fight(player_i: int, player_j: int):
             agent_i = Players[i - 1]("black")
             agent_j = Players[j - 1]("red")
 
-        result_win_i, result_win_j = run_one_game(agent_i, agent_j, player_i, player_j, game)
+        result_win_i, result_win_j = run_one_game(
+            agent_i, agent_j, player_i, player_j, game)
         win_i += result_win_i
         win_j += result_win_j
 
@@ -104,7 +108,8 @@ def fight(player_i: int, player_j: int):
             agent_i = Players[i - 1]("black")
             agent_j = Players[j - 1]("red")
 
-        result_win_i, result_win_j = run_one_game(agent_i, agent_j, player_i, player_j, 7)
+        result_win_i, result_win_j = run_one_game(
+            agent_i, agent_j, player_i, player_j, 7)
         win_i += result_win_i
         win_j += result_win_j
 
@@ -114,6 +119,7 @@ def fight(player_i: int, player_j: int):
         print(f"Finally Player {i} wins and Player {j} loses!")
     elif win_i < win_j:
         print(f"Finally Player {j} wins and Player {i} loses!")
-    
+
+
 if __name__ == "__main__":
-    fight(1, 2) # Play games between group 1 and group 2
+    fight(1, 2)  # Play games between group 1 and group 2
