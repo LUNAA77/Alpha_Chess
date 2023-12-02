@@ -53,9 +53,18 @@ class Player():  # please do not change the class name
             max_value = -100000000
             for action in action_list:
                 self.move(board, action[0], action[1], action[2], action[3])
-                value = self.get_value(board)
-                if value > max_value:
-                    max_value = value
+                enemy_actions = get_legal_actions(board, 'black', self.history)
+                min_enemy_value = 100000000
+                for enemy_action in enemy_actions:
+                    self.move(
+                        board, enemy_action[0], enemy_action[1], enemy_action[2], enemy_action[3])
+                    value = self.get_value(board)
+                    if value < min_enemy_value:
+                        min_enemy_value = value
+                    self.move_back(
+                        board, enemy_action[0], enemy_action[1], enemy_action[2], enemy_action[3])
+                if min_enemy_value > max_value:
+                    max_value = min_enemy_value
                     optimal_action = action
                 self.move_back(board, action[0],
                                action[1], action[2], action[3])
@@ -63,9 +72,18 @@ class Player():  # please do not change the class name
             min_value = 100000000
             for action in action_list:
                 self.move(board, action[0], action[1], action[2], action[3])
-                value = self.get_value(board)
-                if value < min_value:
-                    min_value = value
+                enemy_actions = get_legal_actions(board, 'red', self.history)
+                max_enemy_value = -100000000
+                for enemy_action in enemy_actions:
+                    self.move(
+                        board, enemy_action[0], enemy_action[1], enemy_action[2], enemy_action[3])
+                    value = self.get_value(board)
+                    if value > max_enemy_value:
+                        max_enemy_value = value
+                    self.move_back(
+                        board, enemy_action[0], enemy_action[1], enemy_action[2], enemy_action[3])
+                if max_enemy_value < min_value:
+                    min_value = max_enemy_value
                     optimal_action = action
                 self.move_back(board, action[0],
                                action[1], action[2], action[3])

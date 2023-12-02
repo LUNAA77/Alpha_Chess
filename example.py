@@ -40,8 +40,8 @@
 # replay_final_game(player_1=2, player_2=3, game=4, delta_time=0.1)
 # # replay_final_game(player_1 = 3, player_2 = 2, game = 4, delta_tiem = 0.1) is equivilent.
 
-# # example 5
-# from player_1 import player_1
-# from pve_game import play_pve_game
-# player = player_1.Player("red")    # AI takes red side
-# play_pve_game("black", player)    # you take black side
+# example 5
+from player_7 import player_7
+from pve_game import play_pve_game
+player = player_7.Player("red")    # AI takes red side
+play_pve_game("black", player)    # you take black side
