@@ -43,5 +43,5 @@
 # example 5
 from player_7 import player_7
 from pve_game import play_pve_game
-player = player_7.Player("red")    # AI takes red side
-play_pve_game("black", player)    # you take black side
+player = player_7.Player("black")    # AI takes red side
+play_pve_game("red", player)    # you take black side

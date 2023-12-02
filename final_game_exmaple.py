@@ -3,7 +3,7 @@ import random
 from headless_game import play_headless_game
 from player_1 import player_1
 from player_2 import player_2
-# from player_3 import player_3
+from player_3 import player_3
 # from player_4 import player_4
 # from player_5 import player_5
 # from player_6 import player_6
@@ -14,7 +14,7 @@ from player_7 import player_7
 
 Players = (player_1.Player,
            player_2.Player,
-           3,
+           player_3.Player,
            4,
            5,
            6,
