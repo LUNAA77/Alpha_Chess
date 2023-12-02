@@ -7,21 +7,21 @@ from player_2 import player_2
 # from player_4 import player_4
 # from player_5 import player_5
 # from player_6 import player_6
-# from player_7 import player_7
+from player_7 import player_7
 # from player_8 import player_8
 # from player_9 import player_9
 # from player_10 import player_10
 
-Players = (player_1.player,
-           player_2.player,)
-#    player_3.player,
-#    player_4.player,
-#    player_5.player,
-#    player_6.player,
-#    player_7.player,
-#    player_8.player,
-#    player_9.player,
-#    player_10.player)
+Players = (player_1.Player,
+           player_2.Player,
+           3,
+           4,
+           5,
+           6,
+           player_7.Player,
+           8,
+           9,
+           10)
 
 
 def run_one_game(agent_i, agent_j, player_i, player_j, game):
@@ -122,4 +122,4 @@ def fight(player_i: int, player_j: int):
 
 
 if __name__ == "__main__":
-    fight(1, 2)  # Play games between group 1 and group 2
+    fight(1, 7)  # Play games between group 1 and group 2
