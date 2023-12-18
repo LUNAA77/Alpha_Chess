@@ -1,12 +1,12 @@
-# # example 1
-# from game import play_game
-# from player_1 import player_1
-# from player_2 import player_2
+# example 1
+from game import play_game
+from player_3 import player_3
+from player_5 import player_5
 
-# red = player_1.Player("red")
-# black = player_2.Player("black")
-# # start a new game and watch it comfortably
-# play_game(red, black, delta_time=0.1)
+red = player_3.Player("red")
+black = player_5.Player("black")
+# start a new game and watch it comfortably
+play_game(red, black, delta_time=0.1)
 
 # # example 2
 # from headless_game import play_headless_game
@@ -40,8 +40,8 @@
 # replay_final_game(player_1=2, player_2=3, game=4, delta_time=0.1)
 # # replay_final_game(player_1 = 3, player_2 = 2, game = 4, delta_tiem = 0.1) is equivilent.
 
-# example 5
-from player_7 import player_7
-from pve_game import play_pve_game
-player = player_7.Player("black")    # AI takes red side
-play_pve_game("red", player)    # you take black side
+# # example 5
+# from player_7 import player_7
+# from pve_game import play_pve_game
+# player = player_7.Player("red")    # AI takes red side
+# play_pve_game("black", player)    # you take black side
