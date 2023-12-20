@@ -2,6 +2,7 @@ import random
 
 from utils import get_legal_actions
 # import xxx    # Here may be other package you want to import
+import os
 import time
 import pickle
 import json
@@ -122,7 +123,7 @@ class Player:  # please do not change the class name
             - move_back: restoring the last move. You need to use it when backtracking along a path during a search,
                  so that both the board and self.history are reverted correctly.
         """
-
+        os.chdir(os.path.dirname(__file__))
         self.side = side        # don't change
         self.history = []       # don't change
         self.name = "Player_7"  # please change to your group name
@@ -347,25 +348,14 @@ class Player:  # please do not change the class name
         return hash_value
 
     def opening_book_search(self, board):
-        current_hash = self.zobrist_hash(board)
+        current_hash = f"{self.zobrist_hash(board)}"
         if current_hash in self.hashing_table:
-            # 获取哈希值列表中的所有五元组
-            hash_values = self.hashing_table[current_hash]
-
-            # 从所有五元组中随机选择一个
-            if hash_values:
-                optimal_action = random.choice(hash_values)
-
-                # 检查是否为合法动作
-                legal_actions = get_legal_actions(board, self.side, self.history)
-                if optimal_action in legal_actions:
-                    return optimal_action
-                else:
-                    print("Illegal opening book choice! Choosing a random legal action instead.")
-                    return random.choice(legal_actions)
-
+            action_tuple = self.hashing_table[current_hash]
+            print("selective actions in opening book: ", len(action_tuple))
+            old_x, old_y, new_x, new_y, _ = random.choice(action_tuple)
+            optimal_action = (old_x, old_y, new_x, new_y)
+            print("selected action: ", optimal_action)
         else:
-            # 如果哈希值不在哈希表中，返回 None
             print("Opening book miss!")
             return None
 

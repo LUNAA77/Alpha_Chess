@@ -2,6 +2,7 @@ import csv
 import json
 import random
 
+
 def init_zobrist_hash():
     """
     Initialize the Zobrist hash table.
@@ -11,7 +12,6 @@ def init_zobrist_hash():
     for i in range(10):
         for j in range(9):
             for piece in pieces:
-                # 将元组键转换为字符串形式
                 key_str = f"{i},{j},{piece}"
                 zobrist_table[key_str] = random.getrandbits(64)
 
@@ -20,6 +20,7 @@ def init_zobrist_hash():
         json.dump(zobrist_table, json_file)
 
     return zobrist_table
+
 
 def zobrist_hash(board):
     """
@@ -32,10 +33,11 @@ def zobrist_hash(board):
     hash_value = 0
     for i in range(10):
         for j in range(9):
-                # 使用 Zobrist 表中的哈希值，键使用字符串形式
-                key_str = f"{i},{j},{board[i][j]}"
-                hash_value ^= zobrist_table[key_str]
+            # 使用 Zobrist 表中的哈希值，键使用字符串形式
+            key_str = f"{i},{j},{board[i][j]}"
+            hash_value ^= zobrist_table[key_str]
     return hash_value
+
 
 def convert_board_to_hash(board_str):
     """
@@ -48,6 +50,7 @@ def convert_board_to_hash(board_str):
     hash_value = zobrist_hash(board)
 
     return hash_value
+
 
 def main():
     # Read the new_file1.csv file, using the first and second columns (board and moves columns)
@@ -85,6 +88,7 @@ def main():
         # Write the dictionary of hash values and moves to the JSON file
         with open('hashing_table.json', 'w') as hashfile:
             json.dump(hash_and_moves, hashfile)
+
 
 if __name__ == "__main__":
     init_zobrist_hash()
