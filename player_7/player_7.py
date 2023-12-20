@@ -364,9 +364,10 @@ class Player:  # please do not change the class name
                     print("Illegal opening book choice! Choosing a random legal action instead.")
                     return random.choice(legal_actions)
 
-        # 如果哈希值不在哈希表中，返回 None
-        print("Opening book miss!")
-        return None
+        else:
+            # 如果哈希值不在哈希表中，返回 None
+            print("Opening book miss!")
+            return None
 
     def get_value(self, board):
         alpha = 1
