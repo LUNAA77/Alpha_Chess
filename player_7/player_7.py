@@ -347,37 +347,6 @@ class Player:  # please do not change the class name
         return hash_value
 
     def opening_book_search(self, board):
-<<<<<<< Updated upstream
-        """
-        search in the opening book
-        Args:
-            board: the current board configuration
-
-        Returns:
-            optimal_action: the optimal action in the opening book
-        """
-        current_hash = self.zobrist_hash(board)
-        if current_hash in self.hashing_table:
-            # 获取哈希值列表中的所有五元组
-            hash_values = self.hashing_table[current_hash]
-
-            # 统计每个五元组的出现次数
-            move_counts = {}
-            for hash_value_to_search in hash_values:
-                if hash_value_to_search in self.transposition_table:
-                    _, _, action = self.transposition_table[hash_value_to_search]
-                    # 使用前四个元素作为实际的操作
-                    move = action[:4]
-                    move_counts[tuple(move)] = move_counts.get(tuple(move), 0) + 1
-
-            # 选择出现次数最多的前四个元素作为操作
-            if move_counts:
-                optimal_action = max(move_counts, key=move_counts.get)
-                return optimal_action
-
-        # 如果哈希值不在哈希表中，返回 None
-        print("opening book miss!")
-=======
         current_hash = self.zobrist_hash(board)
         if current_hash in self.hashing_table:
             # 获取哈希值列表中的所有五元组
@@ -397,7 +366,6 @@ class Player:  # please do not change the class name
 
         # 如果哈希值不在哈希表中，返回 None
         print("Opening book miss!")
->>>>>>> Stashed changes
         return None
 
     def get_value(self, board):
@@ -426,8 +394,4 @@ class Player:  # please do not change the class name
                     value -= self.jPosition[9 - i][j]
                 elif board[i][j] == -1:
                     value -= self.zPosition[9 - i][j]
-<<<<<<< Updated upstream
         return value
-=======
-        return value
->>>>>>> Stashed changes
