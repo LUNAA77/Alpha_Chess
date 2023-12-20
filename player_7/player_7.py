@@ -7,7 +7,7 @@ import time
 import pickle
 
 
-class Player():  # please do not change the class name
+class Player:  # please do not change the class name
 
     def __init__(self, side: str):
         """
@@ -25,7 +25,7 @@ class Player():  # please do not change the class name
                 and the y coordinate representing the row number.
             - move: simulating movement, moving a piece from (old_x, old_y) to (new_x, new_y) 
                 and eating a piece when overlap happens.
-            - move_back: restoring the last move. You need to use it when backtracing along a path during a search,
+            - move_back: restoring the last move. You need to use it when backtracking along a path during a search,
                  so that both the board and self.history are reverted correctly.
         """
 
@@ -270,7 +270,6 @@ class Player():  # please do not change the class name
     def init_zobrist_hash(self):
         """
         初始化 Zobrist 哈希表。
-        :param board_size: 棋盘尺寸，例如 (10, 9)。
         :return: Zobrist 哈希表。
         """
         pieces = [1, 2, 3, 4, 5, 6, 7, -1, -2, -3, -4, -5, -6, -7]
