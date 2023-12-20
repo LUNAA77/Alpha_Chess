@@ -5,6 +5,7 @@ from utils import get_legal_actions
 import os
 import time
 import pickle
+import json
 
 
 class Player:  # please do not change the class name
@@ -14,16 +15,16 @@ class Player:  # please do not change the class name
         Variables:
             - self.side: specifies which side your agent takes. It must be "red" or "black".
             - self.history: records history actions.
-            - self.move and self.move_back: when you do "search" or "rollout", you can utilize these two methods 
+            - self.move and self.move_back: when you do "search" or "rollout", you can utilize these two methods
                 to simulate the change of the board as the effect of actions and update self.history accordingly.
             - self.name : for you to set a name for your player. It is "Player" by default.
 
         Methods:
-            - policy: the core method for you to implement. It must return a legal action according to the input 
-                board configuration. Return values must be a four-element tuple or list in the form 
-                of (old_x, old_y, new_x, new_y), with the x coordinate representing the column number 
+            - policy: the core method for you to implement. It must return a legal action according to the input
+                board configuration. Return values must be a four-element tuple or list in the form
+                of (old_x, old_y, new_x, new_y), with the x coordinate representing the column number
                 and the y coordinate representing the row number.
-            - move: simulating movement, moving a piece from (old_x, old_y) to (new_x, new_y) 
+            - move: simulating movement, moving a piece from (old_x, old_y) to (new_x, new_y)
                 and eating a piece when overlap happens.
             - move_back: restoring the last move. You need to use it when backtracking along a path during a search,
                  so that both the board and self.history are reverted correctly.
@@ -32,9 +33,11 @@ class Player:  # please do not change the class name
         self.side = side    # don't change
         self.history = []   # don't change
         self.name = "Player_7"    # please change to your group name
-        self.zobrist_table = {}
+        self.zobrist_table = self.load_zobrist_table()
         self.init_zobrist_hash()
         self.transposition_table = {}
+        self.count = 0
+        self.hashing_table = self.load_hashing_table()
         # 炮的位置价值
         self.pPosition = [
             [6, 4, 0, -10, -12, -10, 0, 4, 6],
@@ -99,14 +102,58 @@ class Player:  # please do not change the class name
                 board[i][j] = 0 means position (i,j) is empty.
 
         Returns:
-            - Your return value is a four-element tuple (i,j,x,y), 
+            - Your return value is a four-element tuple (i,j,x,y),
               which means your next action is to move your piece from (i,j) to (x,y).
             Note that your return value must be illegal. Otherwise you will lose the game directly.
         """
 
         # get all actions that are legal to choose from
-        optimal_action = self.start_search(board, depth=5)
+        if self.count < 4:  # 前四步使用开局库棋谱
+            optimal_action = self.opening_book_search(board)
+            self.count += 1
+        else:
+            optimal_action = self.start_search(board, depth=5)
         return optimal_action
+
+    def load_zobrist_table(self):
+        """
+        Load the Zobrist hash table from the JSON file.
+        """
+        with open('zobrist_table.json', 'r') as json_file:
+            zobrist_table = json.load(json_file)
+        return zobrist_table
+
+    def load_hashing_table(self):
+        # 从 'hashing_table.json' 文件中加载哈希表
+        with open('hashing_table.json', 'r') as json_file:
+            hashing_table = json.load(json_file)
+        return hashing_table
+
+    def opening_book_search(self, board):
+        # 使用 Zobrist 哈希算法获取当前棋盘的哈希值
+        current_hash = self.zobrist_hash(board)
+
+        # 检查当前 Zobrist 哈希值是否在哈希表中
+        if current_hash in self.hashing_table:
+            # 获取哈希值列表中的所有五元组
+            hash_values = self.hashing_table[current_hash]
+
+            # 统计每个五元组的出现次数
+            move_counts = {}
+            for hash_value_to_search in hash_values:
+                if hash_value_to_search in self.transposition_table:
+                    _, _, action = self.transposition_table[hash_value_to_search]
+                    # 使用前四个元素作为实际的操作
+                    move = action[:4]
+                    move_counts[tuple(move)] = move_counts.get(tuple(move), 0) + 1
+
+            # 选择出现次数最多的前四个元素作为操作
+            if move_counts:
+                optimal_action = max(move_counts, key=move_counts.get)
+                return optimal_action
+
+        # 如果哈希值不在哈希表中，返回 None
+        return None
 
     def move(self, board, old_x, old_y, new_x, new_y):  # don't change
         """utility function provided by us: simulate the effect of a movement"""
@@ -164,7 +211,7 @@ class Player:  # please do not change the class name
 
     def minimax(self, board, depth, alpha, beta, side, start_time):
         # check if we reach the end of the search or the time is running out
-        if depth == 0:
+        if depth == 0 or self.count >= 4:
             return self.get_value(board), None
         # if time.time() - start_time > 9.5:
         #     return self.get_value(board), None
@@ -263,9 +310,11 @@ class Player:  # please do not change the class name
         hash_value = 0
         for i in range(10):
             for j in range(9):
-                if board[i][j] != 0:
-                    hash_value ^= self.zobrist_table[(i, j, board[i][j])]
+                # 直接使用 self.zobrist_table
+                key_str = f"{i},{j},{board[i][j]}"
+                hash_value ^= self.zobrist_table[key_str]
         return hash_value
+
 
     def init_zobrist_hash(self):
         """
