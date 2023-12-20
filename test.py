@@ -17,13 +17,13 @@ if __name__ == "__main__":    # for Windows OS
     n = 3
     for i in range(n):
         red = player_7.Player("red")
-        black = player_1.Player("black")
+        black = player_4.Player("black")
         winner, text, history = play_headless_game(red, black, timeout=False)
         print('match: ', i, ' winner: ', winner, '\n', text, '\n')
         if winner == 'red':
             win += 1
     for i in range(n):
-        red = player_1.Player("red")
+        red = player_4.Player("red")
         black = player_7.Player("black")
         winner, text, history = play_headless_game(red, black, timeout=False)
         print('match: ', i, ' winner: ', winner, '\n', text, '\n')

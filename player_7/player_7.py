@@ -260,7 +260,7 @@ class Player:  # please do not change the class name
 
     def minimax(self, board, depth, alpha, beta, side, start_time):
         # check if we reach the end of the search or the time is running out
-        if depth == 0 or self.count >= 4:
+        if depth == 0:
             return self.get_value(board), None
         # if time.time() - start_time > 9.5:
         #     return self.get_value(board), None
@@ -355,6 +355,7 @@ class Player:  # please do not change the class name
             old_x, old_y, new_x, new_y, _ = random.choice(action_tuple)
             optimal_action = (old_x, old_y, new_x, new_y)
             print("selected action: ", optimal_action)
+            return optimal_action
         else:
             print("Opening book miss!")
             return None
