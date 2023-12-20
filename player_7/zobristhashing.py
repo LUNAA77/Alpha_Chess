@@ -32,7 +32,6 @@ def zobrist_hash(board):
     hash_value = 0
     for i in range(10):
         for j in range(9):
-            if board[i][j] != 0:
                 # 使用 Zobrist 表中的哈希值，键使用字符串形式
                 key_str = f"{i},{j},{board[i][j]}"
                 hash_value ^= zobrist_table[key_str]
@@ -75,8 +74,13 @@ def main():
             # Get the moves information from the second column
             moves_info = json.loads(row[1])
 
-            # Store the hash value and moves information in the dictionary
-            hash_and_moves[hash_value] = moves_info
+            # 如果哈希值已经存在，取出现有的五元组列表，再加入现在的五元组
+            if hash_value in hash_and_moves:
+                existing_moves = hash_and_moves[hash_value]
+                existing_moves.append(moves_info)
+                hash_and_moves[hash_value] = existing_moves
+            else:
+                hash_and_moves[hash_value] = [moves_info]
 
         # Write the dictionary of hash values and moves to the JSON file
         with open('hashing_table.json', 'w') as hashfile:

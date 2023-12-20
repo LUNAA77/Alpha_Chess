@@ -347,6 +347,7 @@ class Player:  # please do not change the class name
         return hash_value
 
     def opening_book_search(self, board):
+<<<<<<< Updated upstream
         """
         search in the opening book
         Args:
@@ -376,6 +377,27 @@ class Player:  # please do not change the class name
 
         # 如果哈希值不在哈希表中，返回 None
         print("opening book miss!")
+=======
+        current_hash = self.zobrist_hash(board)
+        if current_hash in self.hashing_table:
+            # 获取哈希值列表中的所有五元组
+            hash_values = self.hashing_table[current_hash]
+
+            # 从所有五元组中随机选择一个
+            if hash_values:
+                optimal_action = random.choice(hash_values)
+
+                # 检查是否为合法动作
+                legal_actions = get_legal_actions(board, self.side, self.history)
+                if optimal_action in legal_actions:
+                    return optimal_action
+                else:
+                    print("Illegal opening book choice! Choosing a random legal action instead.")
+                    return random.choice(legal_actions)
+
+        # 如果哈希值不在哈希表中，返回 None
+        print("Opening book miss!")
+>>>>>>> Stashed changes
         return None
 
     def get_value(self, board):
@@ -404,4 +426,8 @@ class Player:  # please do not change the class name
                     value -= self.jPosition[9 - i][j]
                 elif board[i][j] == -1:
                     value -= self.zPosition[9 - i][j]
+<<<<<<< Updated upstream
         return value
+=======
+        return value
+>>>>>>> Stashed changes
