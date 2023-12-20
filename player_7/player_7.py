@@ -2,10 +2,103 @@ import random
 
 from utils import get_legal_actions
 # import xxx    # Here may be other package you want to import
-import os
 import time
 import pickle
 import json
+
+
+def check_winner(board):
+    """
+    Check who is the winner.
+    Returns:
+        - 'red': if the red side wins.
+        - 'black': if the black side wins.
+        - 'None': if there is no winner yet.
+    """
+    red_alive = any([7 in row for row in board])
+    black_alive = any([-7 in row for row in board])
+    if red_alive and not black_alive:
+        return 'red'
+    elif not red_alive and black_alive:
+        return 'black'
+    else:
+        return 'None'
+
+
+def load_zobrist_table():
+    """
+    Load the Zobrist hash table from the JSON file.
+    Returns:
+        - zobrist_table: a dictionary of the Zobrist hash table.
+    """
+    with open('zobrist_table.json', 'r') as json_file:
+        zobrist_table = json.load(json_file)
+    return zobrist_table
+
+
+def load_opening_book():
+    """
+    Load the opening_book from the JSON file.
+    Returns:
+        - opening_book: a dictionary of hashing table.
+    """
+    with open('hashing_table.json', 'r') as json_file:
+        opening_book = json.load(json_file)
+    return opening_book
+
+
+def load_transposition_table():
+    """
+    Load the transposition table from the pickle file.
+    Returns:
+        - transposition_table: a dictionary of the transposition table.
+    """
+    with open('transposition_table.pkl', 'rb') as f:
+        transposition_table = pickle.load(f)
+    return transposition_table
+
+
+def get_piece_value(board):
+    """
+    Get the value of the pieces on the board.
+    Args:
+        board: the current board configuration.
+
+    Returns:
+        value: the value of the pieces on the board.
+    """
+    value = 0
+    for i in range(10):
+        for j in range(9):
+            if board[i][j] == 7:  # 将/帅
+                value += 1000000
+            elif board[i][j] == 6:  # 车
+                value += 600
+            elif board[i][j] == 5:  # 炮
+                value += 300
+            elif board[i][j] == 4:  # 马
+                value += 300
+            elif board[i][j] == 3:  # 象
+                value += 110
+            elif board[i][j] == 2:  # 士
+                value += 110
+            elif board[i][j] == 1:  # 兵/卒
+                value += 70
+            elif board[i][j] == -7:  # 将/帅
+                value -= 1000000
+            elif board[i][j] == -6:  # 车
+                value -= 600
+            elif board[i][j] == -5:  # 炮
+                value -= 300
+            elif board[i][j] == -4:  # 马
+                value -= 300
+            elif board[i][j] == -3:  # 象
+                value -= 110
+            elif board[i][j] == -2:  # 士
+                value -= 110
+            elif board[i][j] == -1:  # 兵/卒
+                value -= 70
+    return value
 
 
 class Player:  # please do not change the class name
@@ -30,14 +123,13 @@ class Player:  # please do not change the class name
                  so that both the board and self.history are reverted correctly.
         """
 
-        self.side = side    # don't change
-        self.history = []   # don't change
-        self.name = "Player_7"    # please change to your group name
-        self.zobrist_table = self.load_zobrist_table()
-        self.init_zobrist_hash()
-        self.transposition_table = {}
-        self.count = 0
-        self.hashing_table = self.load_hashing_table()
+        self.side = side        # don't change
+        self.history = []       # don't change
+        self.name = "Player_7"  # please change to your group name
+        self.count = 0  # record the number of steps
+        self.zobrist_table = load_zobrist_table()
+        self.transposition_table = load_transposition_table()
+        self.hashing_table = load_opening_book()
         # 炮的位置价值
         self.pPosition = [
             [6, 4, 0, -10, -12, -10, 0, 4, 6],
@@ -107,53 +199,8 @@ class Player:  # please do not change the class name
             Note that your return value must be illegal. Otherwise you will lose the game directly.
         """
 
-        # get all actions that are legal to choose from
-        if self.count < 4:  # 前四步使用开局库棋谱
-            optimal_action = self.opening_book_search(board)
-            self.count += 1
-        else:
-            optimal_action = self.start_search(board, depth=5)
+        optimal_action = self.start_search(board, depth=4, count=self.count)
         return optimal_action
-
-    def load_zobrist_table(self):
-        """
-        Load the Zobrist hash table from the JSON file.
-        """
-        with open('zobrist_table.json', 'r') as json_file:
-            zobrist_table = json.load(json_file)
-        return zobrist_table
-
-    def load_hashing_table(self):
-        # 从 'hashing_table.json' 文件中加载哈希表
-        with open('hashing_table.json', 'r') as json_file:
-            hashing_table = json.load(json_file)
-        return hashing_table
-
-    def opening_book_search(self, board):
-        # 使用 Zobrist 哈希算法获取当前棋盘的哈希值
-        current_hash = self.zobrist_hash(board)
-
-        # 检查当前 Zobrist 哈希值是否在哈希表中
-        if current_hash in self.hashing_table:
-            # 获取哈希值列表中的所有五元组
-            hash_values = self.hashing_table[current_hash]
-
-            # 统计每个五元组的出现次数
-            move_counts = {}
-            for hash_value_to_search in hash_values:
-                if hash_value_to_search in self.transposition_table:
-                    _, _, action = self.transposition_table[hash_value_to_search]
-                    # 使用前四个元素作为实际的操作
-                    move = action[:4]
-                    move_counts[tuple(move)] = move_counts.get(tuple(move), 0) + 1
-
-            # 选择出现次数最多的前四个元素作为操作
-            if move_counts:
-                optimal_action = max(move_counts, key=move_counts.get)
-                return optimal_action
-
-        # 如果哈希值不在哈希表中，返回 None
-        return None
 
     def move(self, board, old_x, old_y, new_x, new_y):  # don't change
         """utility function provided by us: simulate the effect of a movement"""
@@ -181,31 +228,32 @@ class Player:  # please do not change the class name
         return self.name
 
     # ---------------------------------Our Functions---------------------------------
-    def start_search(self, board, depth=4):
+    def start_search(self, board, depth=4, count=0):
         start_time = time.time()
         legal_actions = get_legal_actions(board, self.side, self.history)
+        optimal_action = None
         print(f"Player 7's turn, side: {self.side}")
 
-        # 加载转置表
-        if os.path.exists('player_7/transposition_table.pkl'):
-            with open('player_7/transposition_table.pkl', 'rb') as f:
-                self.transposition_table = pickle.load(f)
+        if count < 4:
+            optimal_action = self.opening_book_search(board)
 
-        optimal_value, optimal_action = self.minimax(
-            board=board, depth=depth, alpha=-100000000, beta=100000000, side=self.side, start_time=start_time)
-        # print("optimal value: ", optimal_value)
+        if count >= 4 or optimal_action is None:
+            optimal_value, optimal_action = self.minimax(
+                board=board, depth=depth, alpha=-100000000, beta=100000000, side=self.side, start_time=start_time)
+
+        self.count += 1
 
         # check if the optimal action is legal
         if optimal_action not in legal_actions:
             optimal_action = random.choice(legal_actions)
             print("illegal choice!")
 
-        # 存储转置表
-        with open('player_7/transposition_table.pkl', 'wb') as f:
-            pickle.dump(self.transposition_table, f)
+        # 存储转置表（仅在训练时使用）
+        # with open('player_7/transposition_table.pkl', 'wb') as f:
+        #     pickle.dump(self.transposition_table, f)
 
         end_time = time.time()
-        print("search time: ", end_time-start_time, '\n')
+        print("search time: ", end_time - start_time, '\n')
 
         return optimal_action
 
@@ -216,6 +264,7 @@ class Player:  # please do not change the class name
         # if time.time() - start_time > 9.5:
         #     return self.get_value(board), None
 
+        # search in transposition table
         board_hash = self.zobrist_hash(board)
         if board_hash in self.transposition_table:
             saved_depth, saved_value, saved_action = self.transposition_table[board_hash]
@@ -227,30 +276,25 @@ class Player:  # please do not change the class name
         # else:
         #     print("transposition table miss!")
 
-        winner = self.check_winner(board)
+        winner = check_winner(board)
         if winner == 'red':
             self.transposition_table[board_hash] = depth, float('inf'), None
             return float('inf'), None
         if winner == 'black':
-            self.transposition_table[board_hash] = depth, float(
-                '-inf'), None
+            self.transposition_table[board_hash] = depth, float('-inf'), None
             return float('-inf'), None
 
-        # get all legal actions and check if the game is over
         legal_actions = get_legal_actions(board, side, self.history)
-        # 按legal_actions中的每个action的最后一个元素（被吃掉的棋子）的绝对值从大到小排序
-        legal_actions.sort(key=lambda x: abs(board[x[2]][x[3]]), reverse=True)
         if len(legal_actions) == 0:
             if side == 'red':
-                self.transposition_table[board_hash] = depth, float(
-                    '-inf'), None
+                self.transposition_table[board_hash] = depth, float('-inf'), None
                 return float('-inf'), None
             else:
-                self.transposition_table[board_hash] = depth, float(
-                    'inf'), None
+                self.transposition_table[board_hash] = depth, float('inf'), None
                 return float('inf'), None
 
-        # random initialization
+        # 启发式，按legal_actions中的每个action的最后一个元素（被吃掉的棋子）的绝对值从大到小排序
+        legal_actions.sort(key=lambda x: abs(board[x[2]][x[3]]), reverse=True)
         optimal_action = random.choice(legal_actions)
 
         # start search
@@ -259,7 +303,7 @@ class Player:  # please do not change the class name
             for action in legal_actions:
                 self.move(board, action[0], action[1], action[2], action[3])
                 value, _ = self.minimax(
-                    board, depth-1, alpha, beta, 'black', start_time)
+                    board, depth - 1, alpha, beta, 'black', start_time)
                 self.move_back(board, action[0],
                                action[1], action[2], action[3])
                 if value > max_value:
@@ -275,7 +319,7 @@ class Player:  # please do not change the class name
             for action in legal_actions:
                 self.move(board, action[0], action[1], action[2], action[3])
                 value, _ = self.minimax(
-                    board, depth-1, alpha, beta, 'red', start_time)
+                    board, depth - 1, alpha, beta, 'red', start_time)
                 self.move_back(board, action[0],
                                action[1], action[2], action[3])
                 if value < min_value:
@@ -287,86 +331,57 @@ class Player:  # please do not change the class name
                 self.transposition_table[board_hash] = depth, min_value, optimal_action
             return min_value, optimal_action
 
-    def check_winner(self, board):
-        """
-        Check who is the winner.
-        Return 'red' if red wins, 'black' if black wins, otherwise return 'None'.
-        """
-        red_alive = any([7 in row for row in board])
-        black_alive = any([-7 in row for row in board])
-        if red_alive and not black_alive:
-            return 'red'
-        elif not red_alive and black_alive:
-            return 'black'
-        else:
-            return 'None'
-
     def zobrist_hash(self, board):
         """
-        根据棋盘和 Zobrist 哈希表计算哈希值。
-        :param board: 棋盘状态。
-        :return: 哈希值。
+        compute the Zobrist hash value of the current board configuration
+        Args:
+            board: the current board configuration
+
+        Returns:
+            hash_value: the Zobrist hash value of the current board configuration
         """
         hash_value = 0
         for i in range(10):
             for j in range(9):
-                # 直接使用 self.zobrist_table
-                key_str = f"{i},{j},{board[i][j]}"
-                hash_value ^= self.zobrist_table[key_str]
+                hash_value ^= self.zobrist_table[f"{i},{j},{board[i][j]}"]
         return hash_value
 
+    def opening_book_search(self, board):
+        """
+        search in the opening book
+        Args:
+            board: the current board configuration
 
-    def init_zobrist_hash(self):
+        Returns:
+            optimal_action: the optimal action in the opening book
         """
-        初始化 Zobrist 哈希表。
-        :return: Zobrist 哈希表。
-        """
-        pieces = [1, 2, 3, 4, 5, 6, 7, -1, -2, -3, -4, -5, -6, -7]
-        for i in range(10):
-            for j in range(9):
-                for piece in pieces:
-                    self.zobrist_table[(i, j, piece)] = random.getrandbits(64)
-        return self.zobrist_table
+        current_hash = self.zobrist_hash(board)
+        if current_hash in self.hashing_table:
+            # 获取哈希值列表中的所有五元组
+            hash_values = self.hashing_table[current_hash]
+
+            # 统计每个五元组的出现次数
+            move_counts = {}
+            for hash_value_to_search in hash_values:
+                if hash_value_to_search in self.transposition_table:
+                    _, _, action = self.transposition_table[hash_value_to_search]
+                    # 使用前四个元素作为实际的操作
+                    move = action[:4]
+                    move_counts[tuple(move)] = move_counts.get(tuple(move), 0) + 1
+
+            # 选择出现次数最多的前四个元素作为操作
+            if move_counts:
+                optimal_action = max(move_counts, key=move_counts.get)
+                return optimal_action
+
+        # 如果哈希值不在哈希表中，返回 None
+        print("opening book miss!")
+        return None
 
     def get_value(self, board):
         alpha = 1
         beta = 8
-        value = alpha * self.get_piece_value(board) + \
-            beta * self.get_position_value(board)
-        return value
-
-    def get_piece_value(self, board):
-        value = 0
-        for i in range(10):
-            for j in range(9):
-                if board[i][j] == 7:    # 将/帅
-                    value += 1000000
-                elif board[i][j] == 6:  # 车
-                    value += 600
-                elif board[i][j] == 5:  # 炮
-                    value += 300
-                elif board[i][j] == 4:  # 马
-                    value += 300
-                elif board[i][j] == 3:  # 象
-                    value += 110
-                elif board[i][j] == 2:  # 士
-                    value += 110
-                elif board[i][j] == 1:  # 兵/卒
-                    value += 70
-                elif board[i][j] == -7:  # 将/帅
-                    value -= 1000000
-                elif board[i][j] == -6:  # 车
-                    value -= 600
-                elif board[i][j] == -5:  # 炮
-                    value -= 300
-                elif board[i][j] == -4:  # 马
-                    value -= 300
-                elif board[i][j] == -3:  # 象
-                    value -= 110
-                elif board[i][j] == -2:  # 士
-                    value -= 110
-                elif board[i][j] == -1:  # 兵/卒
-                    value -= 70
+        value = alpha * get_piece_value(board) + beta * self.get_position_value(board)
         return value
 
     def get_position_value(self, board):
@@ -382,11 +397,11 @@ class Player:  # please do not change the class name
                 elif board[i][j] == 1:
                     value += self.zPosition[i][j]
                 elif board[i][j] == -5:
-                    value -= self.pPosition[9-i][j]
+                    value -= self.pPosition[9 - i][j]
                 elif board[i][j] == -4:
-                    value -= self.mPosition[9-i][j]
+                    value -= self.mPosition[9 - i][j]
                 elif board[i][j] == -6:
-                    value -= self.jPosition[9-i][j]
+                    value -= self.jPosition[9 - i][j]
                 elif board[i][j] == -1:
-                    value -= self.zPosition[9-i][j]
+                    value -= self.zPosition[9 - i][j]
         return value
