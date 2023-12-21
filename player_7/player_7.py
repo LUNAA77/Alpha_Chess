@@ -131,6 +131,7 @@ class Player:  # please do not change the class name
         self.zobrist_table = load_zobrist_table()
         self.transposition_table = load_transposition_table()
         self.hashing_table = load_opening_book()
+        self.killer_moves_table = {}
         # 炮的位置价值
         self.pPosition = [
             [6, 4, 0, -10, -12, -10, 0, 4, 6],
@@ -239,8 +240,14 @@ class Player:  # please do not change the class name
             optimal_action = self.opening_book_search(board)
 
         if count >= 4 or optimal_action is None:
-            optimal_value, optimal_action = self.minimax(
+            result = self.minimax(
                 board=board, depth=depth, alpha=-100000000, beta=100000000, side=self.side, start_time=start_time)
+
+            if result is not None and len(result) == 3:
+                optimal_value, _, optimal_action = result
+            else:
+                # 处理无效返回值
+                optimal_value, optimal_action = 0, None
 
         self.count += 1
 
@@ -257,6 +264,21 @@ class Player:  # please do not change the class name
         print("search time: ", end_time - start_time, '\n')
 
         return optimal_action
+
+    def update_killer_moves(self, depth, cut_move):
+        # 更新杀手着法表
+        if depth not in self.killer_moves_table:
+            self.killer_moves_table[depth] = [None, None]
+
+        if cut_move != self.killer_moves_table[depth][0]:
+            self.killer_moves_table[depth][1] = self.killer_moves_table[depth][0]
+            self.killer_moves_table[depth][0] = cut_move
+
+    def get_killer_moves(self, depth):
+        # 获取当前深度的杀手着法列表
+        return self.killer_moves_table.get(depth, [])
+
+
 
     def minimax(self, board, depth, alpha, beta, side, start_time):
         # check if we reach the end of the search or the time is running out
@@ -280,57 +302,75 @@ class Player:  # please do not change the class name
         winner = check_winner(board)
         if winner == 'red':
             self.transposition_table[board_hash] = depth, float('inf'), None
-            return float('inf'), None
+            return float('inf'), alpha, None
         if winner == 'black':
             self.transposition_table[board_hash] = depth, float('-inf'), None
-            return float('-inf'), None
+            return float('-inf'), beta, None
 
         legal_actions = get_legal_actions(board, side, self.history)
         if len(legal_actions) == 0:
             if side == 'red':
                 self.transposition_table[board_hash] = depth, float('-inf'), None
-                return float('-inf'), None
+                return float('-inf'), alpha, None
             else:
                 self.transposition_table[board_hash] = depth, float('inf'), None
-                return float('inf'), None
+                return float('inf'), beta , None
 
-        # 启发式，按legal_actions中的每个action的最后一个元素（被吃掉的棋子）的绝对值从大到小排序
-        legal_actions.sort(key=lambda x: abs(board[x[2]][x[3]]), reverse=True)
-        optimal_action = random.choice(legal_actions)
+        # 杀手启发式搜索，从杀手启发搜索表中优先搜索，之后再从随机合法操作中进行搜索
+        killer_moves = self.get_killer_moves(depth)
+        # 根据要求，先搜索recent_killer，再搜索old_killer，最后再从所有合法操作中随机选择一个操作
+        recent_killer = None
+        old_killer = None
+        if len(killer_moves) > 0 and killer_moves[0] in legal_actions:
+            recent_killer = killer_moves[0]
+        if len(killer_moves) > 1 and killer_moves[1] in legal_actions:
+            old_killer = killer_moves[1]
 
-        # start search
-        if side == 'red':
-            max_value = -100000000
-            for action in legal_actions:
-                self.move(board, action[0], action[1], action[2], action[3])
-                value, _ = self.minimax(
-                    board, depth - 1, alpha, beta, 'black', start_time)
-                self.move_back(board, action[0],
-                               action[1], action[2], action[3])
-                if value > max_value:
-                    max_value = value
-                    optimal_action = action
-                alpha = max(alpha, value)
-                if beta <= alpha:
-                    break
-                self.transposition_table[board_hash] = depth, max_value, optimal_action
-            return max_value, optimal_action
-        else:  # side == 'black'
-            min_value = 100000000
-            for action in legal_actions:
-                self.move(board, action[0], action[1], action[2], action[3])
-                value, _ = self.minimax(
-                    board, depth - 1, alpha, beta, 'red', start_time)
-                self.move_back(board, action[0],
-                               action[1], action[2], action[3])
-                if value < min_value:
-                    min_value = value
-                    optimal_action = action
-                beta = min(beta, value)
-                if beta <= alpha:
-                    break
-                self.transposition_table[board_hash] = depth, min_value, optimal_action
-            return min_value, optimal_action
+            # 排序 legal_actions，按照现有的方式进行排序（按被吃掉的棋子的绝对值从大到小）
+            legal_actions.sort(key=lambda x: abs(board[x[2]][x[3]]), reverse=True)
+
+            # 将 recent_killer 和 old_killer 插入到 legal_actions 的头部
+            legal_actions = [recent_killer, old_killer] + legal_actions
+
+            optimal_action = None
+
+            if len(legal_actions) == 0:
+                return 0, alpha, None
+
+            if side == 'red':
+                max_value = -100000000
+                for action in legal_actions:
+                    self.move(board, action[0], action[1], action[2], action[3])
+                    value, _ = self.minimax(
+                        board, depth - 1, alpha, beta, 'black', start_time)
+                    self.move_back(board, action[0], action[1], action[2], action[3])
+                    if value > max_value:
+                        max_value = value
+                        optimal_action = action
+                    alpha = max(alpha, value)
+                    if beta <= alpha:
+                        cut_move = action  # Operation causing pruning
+                        self.update_killer_moves(depth, cut_move)
+                        break
+                    self.transposition_table[board_hash] = depth, max_value, optimal_action
+                return max_value, alpha, optimal_action
+            else:  # side == 'black'
+                min_value = 100000000
+                for action in legal_actions:
+                    self.move(board, action[0], action[1], action[2], action[3])
+                    value, _ = self.minimax(
+                        board, depth - 1, alpha, beta, 'red', start_time)
+                    self.move_back(board, action[0], action[1], action[2], action[3])
+                    if value < min_value:
+                        min_value = value
+                        optimal_action = action
+                    beta = min(beta, value)
+                    if beta <= alpha:
+                        cut_move = action  # Operation causing pruning
+                        self.update_killer_moves(depth, cut_move)
+                        break
+                    self.transposition_table[board_hash] = depth, min_value, optimal_action
+                return min_value, beta, optimal_action
 
     def zobrist_hash(self, board):
         """
