@@ -257,7 +257,6 @@ class Player:  # please do not change the class name
 
     def minimax(self, board, depth, alpha, beta, side, start_time):
         # check if we reach the end of the search or the time is running out
-        global optimal_action
         if depth == 0:
             return self.get_value(board), None
         if time.time() - start_time > 9.5:
