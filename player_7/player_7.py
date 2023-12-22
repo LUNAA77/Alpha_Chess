@@ -230,6 +230,14 @@ class Player:  # please do not change the class name
         if count >= 16 or optimal_action is None:
             optimal_value, optimal_action = self.minimax(
                 board=board, depth=depth, alpha=-100000000, beta=100000000, side=self.side, start_time=start_time)
+            mid_time = time.time() - start_time
+            if mid_time < 8:
+                new_value, new_action = self.minimax(board=board, depth=depth+2, alpha=-100000000, beta=100000000,
+                                                     side=self.side, start_time=start_time)
+                if ((new_value > optimal_value and self.side == "red") or
+                        (new_value < optimal_value and self.side == "black")):
+                    optimal_action = new_action
+                    print("better action found!")
 
         print(optimal_action)
         # check if the optimal action is legal
@@ -283,8 +291,6 @@ class Player:  # please do not change the class name
             return float('-inf'), None
 
         legal_actions = get_legal_actions(board, side, self.history)
-        # 排序 legal_actions，按照现有的方式进行排序（按被吃掉的棋子的绝对值从大到小）
-        legal_actions.sort(key=lambda x: abs(board[x[2]][x[3]]), reverse=True)
         if len(legal_actions) == 0:
             if side == 'red':
                 self.transposition_table[board_hash] = depth, float('-inf'), None
@@ -292,6 +298,10 @@ class Player:  # please do not change the class name
             else:
                 self.transposition_table[board_hash] = depth, float('inf'), None
                 return float('inf'), None
+
+        # 排序 legal_actions，按照现有的方式进行排序（按被吃掉的棋子的绝对值从大到小）
+        legal_actions.sort(key=lambda x: abs(board[x[2]][x[3]]), reverse=True)
+        optimal_action = random.choice(legal_actions)
 
         # 杀手启发式搜索，从杀手启发搜索表中优先搜索，之后再从随机合法操作中进行搜索
         killer_moves = self.get_killer_moves(depth)
