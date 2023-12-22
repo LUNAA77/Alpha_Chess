@@ -283,16 +283,19 @@ class Player:  # please do not change the class name
             return float('-inf'), None
 
         legal_actions = get_legal_actions(board, side, self.history)
+        # 排序 legal_actions，按照现有的方式进行排序（按被吃掉的棋子的绝对值从大到小）
+        legal_actions.sort(key=lambda x: abs(board[x[2]][x[3]]), reverse=True)
         if len(legal_actions) == 0:
             if side == 'red':
                 self.transposition_table[board_hash] = depth, float('-inf'), None
-                return float('-inf'),  None
+                return float('-inf'), None
             else:
                 self.transposition_table[board_hash] = depth, float('inf'), None
-                return float('inf'),  None
+                return float('inf'), None
 
         # 杀手启发式搜索，从杀手启发搜索表中优先搜索，之后再从随机合法操作中进行搜索
         killer_moves = self.get_killer_moves(depth)
+
         # 根据要求，先搜索recent_killer，再搜索old_killer，最后再从所有合法操作中随机选择一个操作
         recent_killer = None
         old_killer = None
@@ -301,24 +304,17 @@ class Player:  # please do not change the class name
         if len(killer_moves) > 1 and killer_moves[1] in legal_actions:
             old_killer = killer_moves[1]
 
-        # 排序 legal_actions，按照现有的方式进行排序（按被吃掉的棋子的绝对值从大到小）
-        legal_actions.sort(key=lambda x: abs(board[x[2]][x[3]]), reverse=True)
-
         # 将 recent_killer 和 old_killer 插入到 legal_actions 的头部
         if recent_killer is not None:
             legal_actions.insert(0, recent_killer)
         if old_killer is not None:
             legal_actions.insert(1, old_killer)
 
-
-        if len(legal_actions) == 0:
-            return 0, None
-
         if side == 'red':
             max_value = -100000000
             for action in legal_actions:
                 self.move(board, action[0], action[1], action[2], action[3])
-                value, optimal_action = self.minimax(
+                value, _ = self.minimax(
                     board, depth - 1, alpha, beta, 'black', start_time)
                 self.move_back(board, action[0], action[1], action[2], action[3])
                 if value > max_value:
@@ -335,7 +331,7 @@ class Player:  # please do not change the class name
             min_value = 100000000
             for action in legal_actions:
                 self.move(board, action[0], action[1], action[2], action[3])
-                value, optimal_action = self.minimax(
+                value, _ = self.minimax(
                     board, depth - 1, alpha, beta, 'red', start_time)
                 self.move_back(board, action[0], action[1], action[2], action[3])
                 if value < min_value:

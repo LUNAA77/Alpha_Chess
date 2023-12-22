@@ -4,6 +4,7 @@ from player_2 import player_2
 from player_3 import player_3
 from player_4 import player_4
 from player_5 import player_5
+from player_6 import player_6
 from player_7 import player_7
 
 # player_1: random player
