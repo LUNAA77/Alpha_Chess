@@ -140,8 +140,8 @@ class Player:  # please do not change the class name
         print(f"Player 5's turn, side: {self.side}")
 
         # 加载转置表
-        if os.path.exists('player_5/transposition_table.pkl'):
-            with open('player_5/transposition_table.pkl', 'rb') as f:
+        if os.path.exists('transposition_table.pkl'):
+            with open('transposition_table.pkl', 'rb') as f:
                 self.transposition_table = pickle.load(f)
 
         optimal_value, optimal_action = self.minimax(
@@ -154,8 +154,8 @@ class Player:  # please do not change the class name
             print("illegal choice!")
 
         # 存储转置表
-        with open('player_5/transposition_table.pkl', 'wb') as f:
-            pickle.dump(self.transposition_table, f)
+        # with open('transposition_table.pkl', 'wb') as f:
+        #     pickle.dump(self.transposition_table, f)
 
         end_time = time.time()
         print("search time: ", end_time-start_time, '\n')
@@ -166,8 +166,8 @@ class Player:  # please do not change the class name
         # check if we reach the end of the search or the time is running out
         if depth == 0:
             return self.get_value(board), None
-        # if time.time() - start_time > 9.5:
-        #     return self.get_value(board), None
+        if time.time() - start_time > 9.5:
+            return self.get_value(board), None
 
         board_hash = self.zobrist_hash(board)
         if board_hash in self.transposition_table:

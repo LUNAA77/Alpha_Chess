@@ -4,7 +4,6 @@ from utils import get_legal_actions
 # import xxx    # Here may be other package you want to import
 import os
 import time
-import pickle
 import json
 
 
@@ -32,7 +31,7 @@ def load_zobrist_table():
     Returns:
         - zobrist_table: a dictionary of the Zobrist hash table.
     """
-    with open('zobrist_table.json', 'r') as json_file:
+    with open('player_7/zobrist_table.json', 'r') as json_file:
         zobrist_table = json.load(json_file)
     return zobrist_table
 
@@ -43,20 +42,9 @@ def load_opening_book():
     Returns:
         - opening_book: a dictionary of hashing table.
     """
-    with open('hashing_table.json', 'r') as json_file:
+    with open('player_7/hashing_table.json', 'r') as json_file:
         opening_book = json.load(json_file)
     return opening_book
-
-
-def load_transposition_table():
-    """
-    Load the transposition table from the pickle file.
-    Returns:
-        - transposition_table: a dictionary of the transposition table.
-    """
-    with open('transposition_table.pkl', 'rb') as f:
-        transposition_table = pickle.load(f)
-    return transposition_table
 
 
 def get_piece_value(board):
@@ -123,13 +111,12 @@ class Player:  # please do not change the class name
             - move_back: restoring the last move. You need to use it when backtracking along a path during a search,
                  so that both the board and self.history are reverted correctly.
         """
-        os.chdir(os.path.dirname(__file__))
-        self.side = side        # don't change
-        self.history = []       # don't change
+        # os.chdir(os.path.dirname(__file__))
+        self.side = side  # don't change
+        self.history = []  # don't change
         self.name = "Player_7"  # please change to your group name
-        self.count = 0  # record the number of steps
         self.zobrist_table = load_zobrist_table()
-        self.transposition_table = load_transposition_table()
+        self.transposition_table = {}
         self.hashing_table = load_opening_book()
         self.killer_moves_table = {}
         # 炮的位置价值
@@ -201,7 +188,7 @@ class Player:  # please do not change the class name
             Note that your return value must be illegal. Otherwise you will lose the game directly.
         """
 
-        optimal_action = self.start_search(board, depth=4, count=self.count)
+        optimal_action = self.start_search(board, depth=4)
         return optimal_action
 
     def move(self, board, old_x, old_y, new_x, new_y):  # don't change
@@ -230,16 +217,17 @@ class Player:  # please do not change the class name
         return self.name
 
     # ---------------------------------Our Functions---------------------------------
-    def start_search(self, board, depth=4, count=0):
+    def start_search(self, board, depth=4):
         start_time = time.time()
         legal_actions = get_legal_actions(board, self.side, self.history)
         optimal_action = None
         print(f"Player 7's turn, side: {self.side}")
+        count = len(self.history)
 
-        if count < 4:
+        if count < 16:
             optimal_action = self.opening_book_search(board)
 
-        if count >= 4 or optimal_action is None:
+        if count >= 16 or optimal_action is None:
             result = self.minimax(
                 board=board, depth=depth, alpha=-100000000, beta=100000000, side=self.side, start_time=start_time)
 
@@ -249,16 +237,10 @@ class Player:  # please do not change the class name
                 # 处理无效返回值
                 optimal_value, optimal_action = 0, None
 
-        self.count += 1
-
         # check if the optimal action is legal
         if optimal_action not in legal_actions:
             optimal_action = random.choice(legal_actions)
             print("illegal choice!")
-
-        # 存储转置表（仅在训练时使用）
-        # with open('player_7/transposition_table.pkl', 'wb') as f:
-        #     pickle.dump(self.transposition_table, f)
 
         end_time = time.time()
         print("search time: ", end_time - start_time, '\n')
@@ -278,14 +260,12 @@ class Player:  # please do not change the class name
         # 获取当前深度的杀手着法列表
         return self.killer_moves_table.get(depth, [])
 
-
-
     def minimax(self, board, depth, alpha, beta, side, start_time):
         # check if we reach the end of the search or the time is running out
         if depth == 0:
             return self.get_value(board), None
-        # if time.time() - start_time > 9.5:
-        #     return self.get_value(board), None
+        if time.time() - start_time > 9.5:
+            return self.get_value(board), None
 
         # search in transposition table
         board_hash = self.zobrist_hash(board)
@@ -314,7 +294,7 @@ class Player:  # please do not change the class name
                 return float('-inf'), alpha, None
             else:
                 self.transposition_table[board_hash] = depth, float('inf'), None
-                return float('inf'), beta , None
+                return float('inf'), beta, None
 
         # 杀手启发式搜索，从杀手启发搜索表中优先搜索，之后再从随机合法操作中进行搜索
         killer_moves = self.get_killer_moves(depth)
