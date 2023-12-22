@@ -48,17 +48,6 @@ def load_opening_book():
     return opening_book
 
 
-def load_transposition_table():
-    """
-    Load the transposition table from the pickle file.
-    Returns:
-        - transposition_table: a dictionary of the transposition table.
-    """
-    with open('transposition_table.pkl', 'rb') as f:
-        transposition_table = pickle.load(f)
-    return transposition_table
-
-
 def get_piece_value(board):
     """
     Get the value of the pieces on the board.
@@ -126,10 +115,9 @@ class Player:  # please do not change the class name
         os.chdir(os.path.dirname(__file__))
         self.side = side        # don't change
         self.history = []       # don't change
-        self.name = "Player_7"  # please change to your group name
-        self.count = 0  # record the number of steps
+        self.name = "Player_6"  # please change to your group name
         self.zobrist_table = load_zobrist_table()
-        self.transposition_table = load_transposition_table()
+        self.transposition_table = {}
         self.hashing_table = load_opening_book()
         # 炮的位置价值
         self.pPosition = [
@@ -200,7 +188,7 @@ class Player:  # please do not change the class name
             Note that your return value must be illegal. Otherwise you will lose the game directly.
         """
 
-        optimal_action = self.start_search(board, depth=4, count=self.count)
+        optimal_action = self.start_search(board, depth=4)
         return optimal_action
 
     def move(self, board, old_x, old_y, new_x, new_y):  # don't change
@@ -229,29 +217,24 @@ class Player:  # please do not change the class name
         return self.name
 
     # ---------------------------------Our Functions---------------------------------
-    def start_search(self, board, depth=4, count=0):
+    def start_search(self, board, depth=4):
         start_time = time.time()
         legal_actions = get_legal_actions(board, self.side, self.history)
         optimal_action = None
-        print(f"Player 7's turn, side: {self.side}")
+        print(f"Player 6's turn, side: {self.side}")
+        count = len(self.history)
 
-        if count < 4:
+        if count < 16:
             optimal_action = self.opening_book_search(board)
 
-        if count >= 4 or optimal_action is None:
+        if count >= 16 or optimal_action is None:
             optimal_value, optimal_action = self.minimax(
                 board=board, depth=depth, alpha=-100000000, beta=100000000, side=self.side, start_time=start_time)
-
-        self.count += 1
 
         # check if the optimal action is legal
         if optimal_action not in legal_actions:
             optimal_action = random.choice(legal_actions)
             print("illegal choice!")
-
-        # 存储转置表（仅在训练时使用）
-        # with open('player_7/transposition_table.pkl', 'wb') as f:
-        #     pickle.dump(self.transposition_table, f)
 
         end_time = time.time()
         print("search time: ", end_time - start_time, '\n')
@@ -262,8 +245,8 @@ class Player:  # please do not change the class name
         # check if we reach the end of the search or the time is running out
         if depth == 0:
             return self.get_value(board), None
-        # if time.time() - start_time > 9.5:
-        #     return self.get_value(board), None
+        if time.time() - start_time > 9.5:
+            return self.get_value(board), None
 
         # search in transposition table
         board_hash = self.zobrist_hash(board)

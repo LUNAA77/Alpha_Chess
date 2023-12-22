@@ -4,6 +4,7 @@ from player_2 import player_2
 from player_3 import player_3
 from player_4 import player_4
 from player_5 import player_5
+from player_6 import player_6
 from player_7 import player_7
 
 # player_1: random player
@@ -16,7 +17,7 @@ if __name__ == "__main__":    # for Windows OS
     win = 0
     n = 3
     for i in range(n):
-        red = player_7.Player("red")
+        red = player_6.Player("red")
         black = player_5.Player("black")
         # winner, text, history = play_headless_game(red, black, timeout=False)
         winner, text, history = play_headless_game(red, black, timeout=True)
@@ -25,7 +26,7 @@ if __name__ == "__main__":    # for Windows OS
             win += 1
     for i in range(n):
         red = player_5.Player("red")
-        black = player_7.Player("black")
+        black = player_6.Player("black")
         # winner, text, history = play_headless_game(red, black, timeout=False)
         winner, text, history = play_headless_game(red, black, timeout=True)
         print('match: ', i, ' winner: ', winner, '\n', text, '\n')
