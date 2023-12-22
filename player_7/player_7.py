@@ -115,10 +115,10 @@ class Player:  # please do not change the class name
         self.side = side  # don't change
         self.history = []  # don't change
         self.name = "Player_7"  # please change to your group name
-        self.zobrist_table = load_zobrist_table()
-        self.transposition_table = {}
-        self.hashing_table = load_opening_book()
         self.killer_moves_table = {}
+        self.transposition_table = {}
+        self.zobrist_table = load_zobrist_table()
+        self.hashing_table = load_opening_book()
         # 炮的位置价值
         self.pPosition = [
             [6, 4, 0, -10, -12, -10, 0, 4, 6],
@@ -230,16 +230,16 @@ class Player:  # please do not change the class name
         if count >= 16 or optimal_action is None:
             optimal_value, optimal_action = self.minimax(
                 board=board, depth=depth, alpha=-100000000, beta=100000000, side=self.side, start_time=start_time)
-            mid_time = time.time() - start_time
-            if mid_time < 8:
-                new_value, new_action = self.minimax(board=board, depth=depth+2, alpha=-100000000, beta=100000000,
-                                                     side=self.side, start_time=start_time)
-                if ((new_value > optimal_value and self.side == "red") or
-                        (new_value < optimal_value and self.side == "black")):
-                    optimal_action = new_action
-                    print("better action found!")
+            # mid_time = time.time() - start_time
+            # if mid_time < 8:
+            #     new_value, new_action = self.minimax(board=board, depth=depth+2, alpha=-100000000, beta=100000000,
+            #                                          side=self.side, start_time=start_time)
+            #     if ((new_value > optimal_value and self.side == "red") or
+            #             (new_value < optimal_value and self.side == "black")):
+            #         optimal_action = new_action
+            #         print("better action found!")
 
-        print(optimal_action)
+        # print(optimal_action)
         # check if the optimal action is legal
         if optimal_action not in legal_actions:
             optimal_action = random.choice(legal_actions)
@@ -374,10 +374,10 @@ class Player:  # please do not change the class name
         current_hash = f"{self.zobrist_hash(board)}"
         if current_hash in self.hashing_table:
             action_tuple = self.hashing_table[current_hash]
-            print("selective actions in opening book: ", len(action_tuple))
+            # print("selective actions in opening book: ", len(action_tuple))
             old_x, old_y, new_x, new_y, _ = random.choice(action_tuple)
             optimal_action = (old_x, old_y, new_x, new_y)
-            print("selected action: ", optimal_action)
+            print("selected opening book action: ", optimal_action)
             return optimal_action
         else:
             print("Opening book miss!")

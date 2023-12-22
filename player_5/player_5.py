@@ -137,7 +137,7 @@ class Player:  # please do not change the class name
     def start_search(self, board, depth=4):
         start_time = time.time()
         legal_actions = get_legal_actions(board, self.side, self.history)
-        print(f"Player 5's turn, side: {self.side}")
+        # print(f"Player 5's turn, side: {self.side}")
 
         # 加载转置表
         if os.path.exists('transposition_table.pkl'):
@@ -158,7 +158,7 @@ class Player:  # please do not change the class name
         #     pickle.dump(self.transposition_table, f)
 
         end_time = time.time()
-        print("search time: ", end_time-start_time, '\n')
+        # print("search time: ", end_time-start_time, '\n')
 
         return optimal_action
 
